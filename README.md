@@ -592,6 +592,7 @@
 "這個應用程式使用了最新的演算法來處理資料，並透過雲端運算提供服務。開發者可以透過整合式開發環境進行除錯。"
 
 ### 範例2
+將「### 要轉換的文本」區塊，替換為「請轉換目錄中的所有文本」
 使用 Cursor、VScode Agent Mode 或 Claude Code、Gemini CLI 進行轉換，或設定為 Project knowledge、initial prompt 等，確保 LLM 能夠使用正確的術語。
 
 ## 注意事項
