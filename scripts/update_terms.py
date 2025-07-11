@@ -7,7 +7,7 @@ terms = []
 with open('terms.csv', encoding='utf-8') as f:
     reader = csv.DictReader(f)
     for row in reader:
-        terms.append(f"- {row['cn']} → {row['tw']}")
+        terms.append(f"- {HanziConv.toTraditional(row['cn'])} → {row['tw']}")
 
 # 讀取 README
 with open('README.md', encoding='utf-8') as f:
@@ -38,4 +38,4 @@ if count == 0:
 
 # 寫回 README
 with open('README.md', 'w', encoding='utf-8') as f:
-    f.write(HanziConv.toTraditional(new_readme)) 
+    f.write(new_readme)
