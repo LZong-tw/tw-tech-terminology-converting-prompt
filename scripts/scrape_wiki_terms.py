@@ -199,7 +199,7 @@ class WikiTermsScraper:
             cn_to_tw_terms[cn_term].add(tw_term)
         wiki_terms_dict = {cn: ';'.join(sorted(tws)) for cn, tws in cn_to_tw_terms.items()}
 
-        # 載入上次維基快照
+        # 載入上次維基教科書快照
         prev_wiki_terms = self.load_wiki_snapshot()
         # 載入本地刪除詞彙
         deleted_terms = self.load_deleted_terms()
@@ -212,7 +212,7 @@ class WikiTermsScraper:
 
         for cn_term, new_tw in wiki_terms_dict.items():
             prev_tw = prev_wiki_terms.get(cn_term)
-            # 如果這個詞在維基快照和這次維基內容一樣，保留本地內容
+            # 如果這個詞在維基教科書快照和這次維基教科書內容一樣，保留本地內容
             if prev_tw is not None and prev_tw == new_tw:
                 if cn_term in merged_terms:
                     skipped_terms += 1
@@ -223,7 +223,7 @@ class WikiTermsScraper:
                     new_terms += 1
                     logger.info(f"新增術語: {cn_term} → {new_tw}")
             else:
-                # 維基內容有異動，才自動合併/覆蓋
+                # 維基教科書內容有異動，才自動合併/覆蓋
                 if cn_term in deleted_terms:
                     # 只合併新內容，不加回刪除內容
                     wiki_tw_set = set(new_tw.split(';'))
@@ -250,7 +250,12 @@ class WikiTermsScraper:
                 else:
                     skipped_terms += 1
         logger.info(f"詞彙級合併：新增 {new_terms}，更新 {updated_terms}，保留本地 {skipped_terms}，本地刪除跳過 {deleted_skipped} 筆")
-        # 回傳合併後的內容和這次維基內容（for snapshot）
+        # 保留本地自訂新增的對應（維基教科書沒有的 tw_term）
+        for cn_term, tw_term in existing_terms.items():
+            if cn_term not in merged_terms:
+                merged_terms[cn_term] = tw_term
+                logger.info(f"保留本地自訂新增: {cn_term} → {tw_term}")
+        # 回傳合併後的內容和這次維基教科書內容（for snapshot）
         return merged_terms, wiki_terms_dict
         
     def save_terms(self, terms_dict):
