@@ -1,4 +1,4 @@
-name: Auto Update README Terms
+name: 自動更新 README 中的 prompt
 
 on:
   push:
