@@ -18,8 +18,17 @@ pattern = re.compile(
     re.MULTILINE
 )
 
-# 生成新區塊
-terms_block = '\n' + '\n'.join(terms) + '\n'
+# 生成新區塊，補上所有標題和說明
+terms_block = (
+    '\n### 中國大陸簡體 → 台灣繁體術語對照表：\n'
+    + '\n'.join(terms) + '\n\n'
+    + '### 轉換指示：\n'
+    + '1. 請將文本中出現的中國大陸術語轉換為對應的台灣術語\n'
+    + '2. 保持其他內容不變\n'
+    + '3. 注意上下文，選擇最合適的轉換詞彙\n'
+    + '4. 如果同一個中國大陸術語有多個台灣對應詞彙，請根據上下文選擇最合適的\n\n'
+    + '### 要轉換的文本：\n'
+)
 
 # 替換
 new_readme, count = pattern.subn(r'\1' + terms_block + r'\3', readme)
