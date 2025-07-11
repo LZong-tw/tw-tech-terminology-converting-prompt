@@ -1,5 +1,6 @@
 import csv
 import re
+from hanziconv import HanziConv
 
 # 讀取 CSV
 terms = []
@@ -37,4 +38,4 @@ if count == 0:
 
 # 寫回 README
 with open('README.md', 'w', encoding='utf-8') as f:
-    f.write(new_readme) 
+    f.write(HanziConv.toTraditional(new_readme)) 
