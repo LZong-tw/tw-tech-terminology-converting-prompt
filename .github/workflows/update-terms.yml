@@ -1,0 +1,46 @@
+name: 自動更新術語對照表
+
+on:
+  schedule:
+    # 每天 22 點執行（台灣時間 06:00）
+    - cron: '0 23 * * *'
+  workflow_dispatch:  # 允許手動觸發
+
+jobs:
+  update-terms:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 檢出程式碼
+      uses: actions/checkout@v4
+      
+    - name: 設定 Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: 安裝相依性
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests beautifulsoup4 pandas
+        
+    - name: 爬取維基百科術語對照表
+      run: |
+        python scripts/scrape_wiki_terms.py
+        
+    - name: 更新 README
+      run: |
+        python update_terms.py
+        
+    - name: 繳交變更
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add terms.csv README.md
+        git diff --quiet && git diff --staged --quiet || git commit -m "自動更新術語對照表 [skip ci]"
+        
+    - name: 推送變更
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }} 
