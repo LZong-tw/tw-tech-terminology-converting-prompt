@@ -126,9 +126,14 @@ cn,tw
 terms.csv.backup.YYYYMMDD_HHMMSS
 ```
 
-## 刪除詞彙與保護本地內容
+## 刪除/修改詞彙與保護本地內容
 
-請使用 `scripts/delete_term.py` 來刪除詞彙，會自動記錄到 `deleted_terms.txt`，未來自動合併時不會自動加回你刪掉的內容。
+請使用 `scripts/modify_term.py` 來刪除或修改詞彙，會自動記錄到 `deleted_terms.txt`，未來自動合併時不會自動加回你刪掉的內容。
+
+### modify_term.py 用法
+- 修改對應內容：「python scripts/modify_term.py 配置 組態;設定」
+- 刪除整組：「python scripts/modify_term.py 文本」
+- 刪除部分對應：「python scripts/modify_term.py 配置 組態」
 
 ### deleted_terms.txt 格式
 - 每行：「中國大陸詞,台灣詞1;台灣詞2...」
@@ -140,9 +145,6 @@ terms.csv.backup.YYYYMMDD_HHMMSS
 文本,文字
 ```
 
-### 刪除用法
-- 刪除整組：「python scripts/delete_term.py 文本」
-- 刪除部分對應：「python scripts/delete_term.py 配置 配置」
-
 ### 合併邏輯
 - 合併時只會加回 deleted_terms.txt 以外的新內容。
+- 若要以本地內容為合併基準，請將 `terms.csv` 複製為 `wiki_terms_snapshot.csv`。

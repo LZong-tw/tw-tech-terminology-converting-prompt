@@ -178,7 +178,12 @@ class WikiTermsScraper:
                         if not line or ',' not in line:
                             continue
                         cn, tws = line.split(',', 1)
-                        deleted[cn.strip()] = set(t.strip() for t in tws.split(';') if t.strip())
+                        cn = cn.strip()
+                        tw_set = set(t.strip() for t in tws.split(';') if t.strip())
+                        if cn in deleted:
+                            deleted[cn].update(tw_set)
+                        else:
+                            deleted[cn] = tw_set
                 logger.info(f"載入本地刪除詞彙 {len(deleted)} 筆")
             except Exception as e:
                 logger.error(f"載入刪除詞彙失敗: {e}")
