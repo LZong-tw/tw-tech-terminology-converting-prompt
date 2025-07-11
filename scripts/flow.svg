@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  本 SVG 由 Mermaid 流程圖產生，描述 scrape_wiki_terms.py 的完整執行流。
+-->
+<svg width="900" height="600" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
+  <g font-family="Arial, Helvetica, sans-serif" font-size="16">
+    <rect x="60" y="30" width="120" height="40" rx="10" fill="#f9f" stroke="#333" stroke-width="2"/>
+    <text x="120" y="55" text-anchor="middle" alignment-baseline="middle">開始</text>
+
+    <rect x="220" y="30" width="220" height="40" rx="10" fill="#fff" stroke="#333" stroke-width="2"/>
+    <text x="330" y="55" text-anchor="middle" alignment-baseline="middle">fetch_wiki_page 取得維基教科書頁面</text>
+
+    <rect x="480" y="30" width="220" height="40" rx="10" fill="#fff" stroke="#333" stroke-width="2"/>
+    <text x="590" y="55" text-anchor="middle" alignment-baseline="middle">parse_terms_table 解析術語對照表</text>
+
+    <rect x="60" y="120" width="220" height="40" rx="10" fill="#fff" stroke="#333" stroke-width="2"/>
+    <text x="170" y="145" text-anchor="middle" alignment-baseline="middle">load_existing_terms 載入本地 terms.csv</text>
+
+    <rect x="320" y="120" width="220" height="40" rx="10" fill="#fff" stroke="#333" stroke-width="2"/>
+    <text x="430" y="145" text-anchor="middle" alignment-baseline="middle">load_wiki_snapshot 載入 wiki_terms_snapshot.csv</text>
+
+    <rect x="580" y="120" width="220" height="40" rx="10" fill="#fff" stroke="#333" stroke-width="2"/>
+    <text x="690" y="145" text-anchor="middle" alignment-baseline="middle">整理本次維基術語字典</text>
+
+    <rect x="170" y="210" width="320" height="50" rx="10" fill="#cfc" stroke="#333" stroke-width="2"/>
+    <text x="330" y="240" text-anchor="middle" alignment-baseline="middle">merge_terms 詞彙級合併</text>
+
+    <rect x="60" y="300" width="220" height="40" rx="10" fill="#cfc" stroke="#333" stroke-width="2"/>
+    <text x="170" y="325" text-anchor="middle" alignment-baseline="middle">save_terms 儲存合併後的 terms.csv</text>
+
+    <rect x="480" y="300" width="220" height="40" rx="10" fill="#cfc" stroke="#333" stroke-width="2"/>
+    <text x="590" y="325" text-anchor="middle" alignment-baseline="middle">save_wiki_snapshot 儲存本次維基快照</text>
+
+    <rect x="330" y="390" width="120" height="40" rx="10" fill="#ff9" stroke="#333" stroke-width="2"/>
+    <text x="390" y="415" text-anchor="middle" alignment-baseline="middle">合併成功?</text>
+
+    <rect x="60" y="480" width="120" height="40" rx="10" fill="#faa" stroke="#333" stroke-width="2"/>
+    <text x="120" y="505" text-anchor="middle" alignment-baseline="middle">記錄失敗</text>
+
+    <rect x="480" y="480" width="120" height="40" rx="10" fill="#bbf" stroke="#333" stroke-width="2"/>
+    <text x="540" y="505" text-anchor="middle" alignment-baseline="middle">結束</text>
+
+    <!-- 連線 -->
+    <line x1="180" y1="70" x2="220" y2="50" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="440" y1="70" x2="480" y2="50" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="590" y1="70" x2="170" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="590" y1="70" x2="430" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="590" y1="70" x2="690" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="170" y1="160" x2="330" y2="210" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="430" y1="160" x2="330" y2="210" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="690" y1="160" x2="330" y2="210" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="330" y1="260" x2="170" y2="300" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="330" y1="260" x2="590" y2="300" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="170" y1="340" x2="390" y2="390" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="590" y1="340" x2="390" y2="390" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="390" y1="430" x2="540" y2="480" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="390" y1="430" x2="120" y2="480" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="540" y1="520" x2="540" y2="600" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="120" y1="520" x2="540" y2="600" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 L2,5 z" fill="#333" />
+    </marker>
+  </defs>
+</svg> 

@@ -24,6 +24,8 @@ class WikiTermsScraper:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         self.terms_file = 'terms.csv'
+        self.wiki_snapshot_file = 'wiki_terms_snapshot.csv'  # 新增快照檔案
+        self.deleted_terms_file = 'deleted_terms.txt'  # 新增刪除詞彙記錄檔
         
     def fetch_wiki_page(self):
         """取得維基教科書頁面內容"""
@@ -138,61 +140,113 @@ class WikiTermsScraper:
                 logger.error(f"載入現有術語失敗: {e}")
         return existing_terms
         
+    def save_wiki_snapshot(self, wiki_terms_dict):
+        """儲存維基教科書術語快照到 CSV 檔案"""
+        try:
+            with open(self.wiki_snapshot_file, 'w', encoding='utf-8', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['cn', 'tw'])
+                sorted_terms = sorted(wiki_terms_dict.items(), key=lambda x: x[0])
+                for cn_term, tw_term in sorted_terms:
+                    writer.writerow([cn_term, tw_term])
+            logger.info(f"成功儲存維基快照 {len(wiki_terms_dict)} 個術語到 {self.wiki_snapshot_file}")
+        except Exception as e:
+            logger.error(f"儲存維基快照失敗: {e}")
+
+    def load_wiki_snapshot(self):
+        """載入上次維基教科書術語快照"""
+        wiki_terms = {}
+        if os.path.exists(self.wiki_snapshot_file):
+            try:
+                with open(self.wiki_snapshot_file, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        wiki_terms[row['cn']] = row['tw']
+                logger.info(f"載入上次維基快照 {len(wiki_terms)} 個術語")
+            except Exception as e:
+                logger.error(f"載入維基快照失敗: {e}")
+        return wiki_terms
+        
+    def load_deleted_terms(self):
+        """載入本地刪除詞彙及其對應內容，回傳 dict: {cn: set(tw1, tw2, ...)}"""
+        deleted = {}
+        if os.path.exists(self.deleted_terms_file):
+            try:
+                with open(self.deleted_terms_file, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line or ',' not in line:
+                            continue
+                        cn, tws = line.split(',', 1)
+                        deleted[cn.strip()] = set(t.strip() for t in tws.split(';') if t.strip())
+                logger.info(f"載入本地刪除詞彙 {len(deleted)} 筆")
+            except Exception as e:
+                logger.error(f"載入刪除詞彙失敗: {e}")
+        return deleted
+        
     def merge_terms(self, wiki_terms, existing_terms):
-        """合併維基教科書術語和現有術語"""
-        # 檢查是否為空檔案
-        is_empty_file = len(existing_terms) == 0
-        
-        if is_empty_file:
-            # 強制更新：直接使用維基教科書的術語
-            merged_terms = {}
-            new_terms = 0
-            
-            # 將 wiki_terms 按中國大陸詞分組
-            cn_to_tw_terms = {}
-            for cn_term, tw_term in wiki_terms:
-                if cn_term not in cn_to_tw_terms:
-                    cn_to_tw_terms[cn_term] = set()
-                cn_to_tw_terms[cn_term].add(tw_term)
-            
-            # 直接添加所有術語
-            for cn_term, tw_terms_set in cn_to_tw_terms.items():
-                tw_terms_str = ';'.join(sorted(tw_terms_set))
-                merged_terms[cn_term] = tw_terms_str
-                new_terms += 1
-                logger.info(f"強制新增術語: {cn_term} → {tw_terms_str}")
-            
-            logger.info(f"強制更新：新增 {new_terms} 個術語")
-        else:
-            # 增量更新：只更新有變化的術語
-            merged_terms = existing_terms.copy()
-            new_terms = 0
-            updated_terms = 0
-            
-            # 將 wiki_terms 按中國大陸詞分組
-            cn_to_tw_terms = {}
-            for cn_term, tw_term in wiki_terms:
-                if cn_term not in cn_to_tw_terms:
-                    cn_to_tw_terms[cn_term] = set()
-                cn_to_tw_terms[cn_term].add(tw_term)
-            
-            # 合併術語
-            for cn_term, tw_terms_set in cn_to_tw_terms.items():
-                tw_terms_str = ';'.join(sorted(tw_terms_set))
-                
-                if cn_term not in merged_terms:
-                    merged_terms[cn_term] = tw_terms_str
+        """詞彙級合併：僅維基內容有異動的詞才自動合併，且本地刪除內容不會自動加回，只合併新內容"""
+        # 將 wiki_terms 按中國大陸詞分組
+        cn_to_tw_terms = {}
+        for cn_term, tw_term in wiki_terms:
+            if cn_term not in cn_to_tw_terms:
+                cn_to_tw_terms[cn_term] = set()
+            cn_to_tw_terms[cn_term].add(tw_term)
+        wiki_terms_dict = {cn: ';'.join(sorted(tws)) for cn, tws in cn_to_tw_terms.items()}
+
+        # 載入上次維基快照
+        prev_wiki_terms = self.load_wiki_snapshot()
+        # 載入本地刪除詞彙
+        deleted_terms = self.load_deleted_terms()
+
+        merged_terms = existing_terms.copy()
+        new_terms = 0
+        updated_terms = 0
+        skipped_terms = 0
+        deleted_skipped = 0
+
+        for cn_term, new_tw in wiki_terms_dict.items():
+            prev_tw = prev_wiki_terms.get(cn_term)
+            # 如果這個詞在維基快照和這次維基內容一樣，保留本地內容
+            if prev_tw is not None and prev_tw == new_tw:
+                if cn_term in merged_terms:
+                    skipped_terms += 1
+                    continue  # 保留本地內容
+                else:
+                    # 本地沒有，新增
+                    merged_terms[cn_term] = new_tw
                     new_terms += 1
-                    logger.info(f"新增術語: {cn_term} → {tw_terms_str}")
-                elif merged_terms[cn_term] != tw_terms_str:
+                    logger.info(f"新增術語: {cn_term} → {new_tw}")
+            else:
+                # 維基內容有異動，才自動合併/覆蓋
+                if cn_term in deleted_terms:
+                    # 只合併新內容，不加回刪除內容
+                    wiki_tw_set = set(new_tw.split(';'))
+                    deleted_tw_set = deleted_terms[cn_term]
+                    new_only_set = wiki_tw_set - deleted_tw_set
+                    if new_only_set:
+                        new_only_str = ';'.join(sorted(new_only_set))
+                        merged_terms[cn_term] = new_only_str
+                        updated_terms += 1
+                        logger.info(f"只合併新內容: {cn_term} → {new_only_str}")
+                    else:
+                        deleted_skipped += 1
+                        logger.info(f"本地刪除過，且無新內容: {cn_term}，不自動加回")
+                    continue
+                if cn_term not in merged_terms:
+                    merged_terms[cn_term] = new_tw
+                    new_terms += 1
+                    logger.info(f"新增術語: {cn_term} → {new_tw}")
+                elif merged_terms[cn_term] != new_tw:
                     old_tw = merged_terms[cn_term]
-                    merged_terms[cn_term] = tw_terms_str
+                    merged_terms[cn_term] = new_tw
                     updated_terms += 1
-                    logger.info(f"更新術語: {cn_term} → {old_tw} → {tw_terms_str}")
-            
-            logger.info(f"增量更新：新增 {new_terms} 個術語，更新 {updated_terms} 個術語")
-        
-        return merged_terms
+                    logger.info(f"更新術語: {cn_term} → {old_tw} → {new_tw}")
+                else:
+                    skipped_terms += 1
+        logger.info(f"詞彙級合併：新增 {new_terms}，更新 {updated_terms}，保留本地 {skipped_terms}，本地刪除跳過 {deleted_skipped} 筆")
+        # 回傳合併後的內容和這次維基內容（for snapshot）
+        return merged_terms, wiki_terms_dict
         
     def save_terms(self, terms_dict):
         """儲存術語對照表到 CSV 檔案"""
@@ -221,8 +275,8 @@ class WikiTermsScraper:
             return False
             
     def run(self):
-        """執行完整的爬取和更新流程"""
-        logger.info("開始執行術語對照表更新流程")
+        """執行完整的爬取和更新流程（詞彙級合併）"""
+        logger.info("開始執行術語對照表更新流程（詞彙級合併）")
         
         # 取得維基教科書頁面
         html_content = self.fetch_wiki_page()
@@ -240,13 +294,14 @@ class WikiTermsScraper:
         existing_terms = self.load_existing_terms()
         
         # 合併術語
-        merged_terms = self.merge_terms(wiki_terms, existing_terms)
+        merged_terms, wiki_terms_dict = self.merge_terms(wiki_terms, existing_terms)
         
         # 儲存術語
         success = self.save_terms(merged_terms)
         
         if success:
-            logger.info("術語對照表更新完成")
+            self.save_wiki_snapshot(wiki_terms_dict)
+            logger.info("術語對照表更新完成（詞彙級合併）")
         else:
             logger.error("術語對照表更新失敗")
             
