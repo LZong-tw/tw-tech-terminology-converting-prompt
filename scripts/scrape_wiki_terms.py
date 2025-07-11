@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-維基百科術語對照表爬蟲
-自動從維基百科爬取中國大陸台灣計算機術語對照表並更新本地 CSV 檔案
+維基教科書術語對照表爬蟲
+自動從維基教科書爬取中國大陸台灣計算機術語對照表並更新本地 CSV 檔案
 """
 
 import requests
@@ -26,7 +26,7 @@ class WikiTermsScraper:
         self.terms_file = 'terms.csv'
         
     def fetch_wiki_page(self):
-        """取得維基百科頁面內容"""
+        """取得維基教科書頁面內容"""
         try:
             logger.info(f"正在取得頁面: {self.url}")
             response = requests.get(self.url, headers=self.headers, timeout=30)
@@ -76,7 +76,7 @@ class WikiTermsScraper:
                             tw_str = ';'.join(sorted(set(tw_terms)))
                             if cn != tw_str:
                                 terms.append((cn, tw_str))
-        logger.info(f"從維基百科解析到 {len(terms)} 個術語對照")
+        logger.info(f"從維基教科書解析到 {len(terms)} 個術語對照")
         return terms
         
     def clean_term(self, term):
@@ -139,12 +139,12 @@ class WikiTermsScraper:
         return existing_terms
         
     def merge_terms(self, wiki_terms, existing_terms):
-        """合併維基百科術語和現有術語"""
+        """合併維基教科書術語和現有術語"""
         # 檢查是否為空檔案
         is_empty_file = len(existing_terms) == 0
         
         if is_empty_file:
-            # 強制更新：直接使用維基百科的術語
+            # 強制更新：直接使用維基教科書的術語
             merged_terms = {}
             new_terms = 0
             
@@ -224,10 +224,10 @@ class WikiTermsScraper:
         """執行完整的爬取和更新流程"""
         logger.info("開始執行術語對照表更新流程")
         
-        # 取得維基百科頁面
+        # 取得維基教科書頁面
         html_content = self.fetch_wiki_page()
         if not html_content:
-            logger.error("無法取得維基百科頁面，流程終止")
+            logger.error("無法取得維基教科書頁面，流程終止")
             return False
             
         # 解析術語對照表

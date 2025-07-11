@@ -19,7 +19,7 @@ def test_scraper():
     scraper = WikiTermsScraper()
     
     # 測試取得頁面
-    print("1. 測試取得維基百科頁面...")
+    print("1. 測試取得維基教科書頁面...")
     html_content = scraper.fetch_wiki_page()
     if html_content:
         print("✓ 成功取得頁面")

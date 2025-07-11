@@ -24,13 +24,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests beautifulsoup4 pandas
         
-    - name: 爬取維基百科術語對照表
+    - name: 爬取維基教科書術語對照表
       run: |
         python scripts/scrape_wiki_terms.py
         
     - name: 更新 README
       run: |
-        python update_terms.py
+        python scripts/update_terms.py
         
     - name: 繳交變更
       run: |
