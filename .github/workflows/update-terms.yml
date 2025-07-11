@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: 檢出程式碼
+    - name: 簽出程式碼
       uses: actions/checkout@v4
       
     - name: 設定 Python
@@ -27,7 +27,9 @@ jobs:
     - name: 爬取維基教科書術語對照表
       run: |
         python scripts/scrape_wiki_terms.py
-        
+    - name: 安裝相依性
+      run: |
+        pip install -r requirements.txt
     - name: 更新 README
       run: |
         python scripts/update_terms.py
