@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-自動從 terms.csv 修改或刪除指定詞彙的對應內容，並記錄移除的對應到 deleted_terms.txt
+自動從 terms.csv 修改或刪除指定詞彙的對應內容，刪除時才記錄到 deleted_terms.txt，確保冪等性。
 """
 
 import csv
 import sys
 import os
+import argparse
 
 TERMS_FILE = 'terms.csv'
 DELETED_TERMS_FILE = 'deleted_terms.txt'
 
-def update_term(cn_term, new_tw=None):
+def modify_term(cn_term, new_tw=None, delete_mode=False):
     # 讀取現有 terms
     terms = []
     old_tw_set = set()
@@ -24,7 +25,11 @@ def update_term(cn_term, new_tw=None):
                 old_tw_set = set(t.strip() for t in row['tw'].split(';') if t.strip())
                 if new_tw is None or not new_tw.strip():
                     # 整組刪除
-                    continue
+                    if delete_mode:
+                        continue  # 不寫入 terms.csv
+                    else:
+                        # 修改模式下，整組刪除等同於刪除
+                        continue
                 else:
                     new_tw_set = set(t.strip() for t in new_tw.split(';') if t.strip())
                     # 只保留新內容
@@ -44,7 +49,11 @@ def update_term(cn_term, new_tw=None):
         for row in terms:
             writer.writerow(row)
 
-    # 記錄到 deleted_terms.txt（避免重複）
+    if not delete_mode:
+        print(f"已修改 {cn_term} 對應內容，未記錄到 deleted_terms.txt（冪等）")
+        return
+
+    # 記錄到 deleted_terms.txt（避免重複，僅刪除模式）
     already = set()
     if os.path.exists(DELETED_TERMS_FILE):
         with open(DELETED_TERMS_FILE, 'r', encoding='utf-8') as f:
@@ -77,10 +86,9 @@ def update_term(cn_term, new_tw=None):
                 print(f"已移除，記錄已存在：{record}")
 
 if __name__ == '__main__':
-    if len(sys.argv) == 2:
-        update_term(sys.argv[1])
-    elif len(sys.argv) == 3:
-        update_term(sys.argv[1], sys.argv[2])
-    else:
-        print("用法: python scripts/update_term.py <中國大陸詞> [新台灣詞(多個用分號分隔)]")
-        sys.exit(1) 
+    parser = argparse.ArgumentParser(description='修改或刪除 terms.csv 的對應內容。')
+    parser.add_argument('cn_term', help='中國大陸詞')
+    parser.add_argument('new_tw', nargs='?', default=None, help='新的台灣詞（多個用分號分隔）')
+    parser.add_argument('--delete', '-d', action='store_true', help='刪除模式，會記錄到 deleted_terms.txt')
+    args = parser.parse_args()
+    modify_term(args.cn_term, args.new_tw, args.delete) 

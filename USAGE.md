@@ -53,25 +53,6 @@ GitHub Actions 會自動執行以下流程：
 - 檢查 `terms.csv` 檔案的變更歷史
 - 查看備份檔案了解更新前的狀態
 
-## 設定選項
-
-### 修改更新頻率
-
-編輯 `.github/workflows/update-terms.yml` 中的 cron 表達式：
-
-```yaml
-schedule:
-  - cron: '0 2 * * 1'  # 每週一凌晨 2 點
-```
-
-### 修改資料源
-
-編輯 `scripts/scrape_wiki_terms.py` 中的 URL：
-
-```python
-self.url = "https://zh.wikibooks.org/w/index.php?title=%E5%A4%A7%E9%99%86%E5%8F%B0%E6%B9%BE%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%9C%AF%E8%AF%AD%E5%AF%B9%E7%85%A7%E8%A1%A8&variant=zh"
-```
-
 ## 故障排除
 
 ### 常見問題
@@ -130,10 +111,18 @@ terms.csv.backup.YYYYMMDD_HHMMSS
 
 請使用 `scripts/modify_term.py` 來刪除或修改詞彙，會自動記錄到 `deleted_terms.txt`，未來自動合併時不會自動加回你刪掉的內容。
 
-### modify_term.py 用法
-- 修改對應內容：「python scripts/modify_term.py 配置 組態;設定」
-- 刪除整組：「python scripts/modify_term.py 文本」
-- 刪除部分對應：「python scripts/modify_term.py 配置 組態」
+## modify_term.py 用法
+- 修改對應內容（冪等，僅更新 terms.csv，不會記錄到 deleted_terms.txt）：
+  - python scripts/modify_term.py 配置 組態;設定
+- 刪除整組（會記錄到 deleted_terms.txt）：
+  - python scripts/modify_term.py 配置 --delete
+- 刪除部分對應（只移除「設定」並記錄到 deleted_terms.txt）：
+  - python scripts/modify_term.py 配置 設定 --delete
+
+### 注意：
+- 預設為「修改」模式，重複執行不會有副作用，適合用於修改對應內容或自訂新增。
+- 只有加上 --delete 或 -d 參數時，才會記錄被移除的對應到 deleted_terms.txt，適合用於明確刪除。
+- 若要自訂新增對應，請直接手動加到 terms.csv 或用修改模式，不要用刪除模式，避免誤記錄到 deleted_terms.txt。
 
 ### deleted_terms.txt 格式
 - 每行：「中國大陸詞,台灣詞1;台灣詞2...」
