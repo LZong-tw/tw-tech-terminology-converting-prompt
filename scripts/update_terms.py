@@ -2,12 +2,24 @@ import csv
 import re
 from hanziconv import HanziConv
 
+# 要排除的字詞，可擴充
+EXCLUDE_WORDS = ["表"]
+
 # 讀取 CSV
 terms = []
 with open('terms.csv', encoding='utf-8') as f:
     reader = csv.DictReader(f)
     for row in reader:
-        terms.append(f"- {HanziConv.toTraditional(row['cn'])} → {row['tw']}")
+        cn = row['cn']
+        # 1. 替換排除詞為特殊標記
+        for idx, word in enumerate(EXCLUDE_WORDS):
+            cn = cn.replace(word, f"__EXCLUDE_{idx}__")
+        # 2. 轉繁體
+        cn_trad = HanziConv.toTraditional(cn)
+        # 3. 還原特殊標記
+        for idx, word in enumerate(EXCLUDE_WORDS):
+            cn_trad = cn_trad.replace(f"__EXCLUDE_{idx}__", word)
+        terms.append(f"- {cn_trad} → {row['tw']}")
 
 # 讀取 README
 with open('README.md', encoding='utf-8') as f:
