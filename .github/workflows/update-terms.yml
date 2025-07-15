@@ -38,7 +38,7 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add terms.csv README.md
+        git add terms.csv README.md wiki_terms_snapshot.csv
         git diff --quiet && git diff --staged --quiet || git commit -m "自動更新術語對照表"
         
     - name: 推送變更
